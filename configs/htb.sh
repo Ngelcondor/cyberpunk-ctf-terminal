@@ -55,10 +55,6 @@ tmux send-keys -t "$PANE_ATTACK" "clear; echo '⚔️  ATTACK pane — $MACHINE'
 tmux send-keys -t "$PANE_NOTES"  "clear; echo '📝 Notes — $MACHINE'; ls" C-m
 tmux send-keys -t "$PANE_VPN"    "clear; echo '🌐 VPN'; ip a show tun0 2>/dev/null | grep inet || echo '⚠️  not connected'" C-m
 
-# === Status bar verde HTB ===
-tmux set-option -t "$SESSION" status-left "#[bg=#50fa7b,fg=#282a36,bold] HTB:$MACHINE #[bg=#282a36,fg=#50fa7b]#[fg=#f8f8f2,bg=#44475a] #S "
-tmux set-option -t "$SESSION" status-left-length 50
-
 # === Lancia claude per ultimo (shell stabile, layout finalizzato) ===
 tmux send-keys -t "$PANE_CLAUDE" "claude --remote-control htb-$MACHINE" C-m
 
