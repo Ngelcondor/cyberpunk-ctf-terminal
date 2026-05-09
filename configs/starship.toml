@@ -1,0 +1,79 @@
+# Starship prompt — CTF / pentest workflow
+# Palette Dracula per matchare tema tmux
+
+add_newline = false
+palette = "dracula"
+
+format = """
+$directory\
+$git_branch\
+$git_status\
+$python\
+$custom\
+$cmd_duration\
+$line_break\
+$character"""
+
+[character]
+success_symbol = "[❯](bold green)"
+error_symbol = "[❯](bold red)"
+vicmd_symbol = "[❮](bold yellow)"
+
+[directory]
+truncation_length = 3
+truncate_to_repo = false
+style = "bold cyan"
+format = "[$path]($style)[$read_only]($read_only_style) "
+read_only = " 🔒"
+
+[git_branch]
+symbol = " "
+style = "bold purple"
+format = "on [$symbol$branch]($style) "
+
+[git_status]
+style = "bold yellow"
+format = "[$all_status$ahead_behind]($style) "
+ahead = "⇡${count}"
+behind = "⇣${count}"
+diverged = "⇕⇡${ahead_count}⇣${behind_count}"
+modified = "!"
+staged = "+"
+untracked = "?"
+stashed = "$"
+
+[python]
+symbol = " "
+style = "bold yellow"
+format = '[(\($virtualenv\) )]($style)'
+python_binary = ["python3", "python"]
+detect_extensions = []
+detect_files = []
+detect_folders = [".venv", "venv"]
+
+[cmd_duration]
+min_time = 2_000
+style = "bold orange"
+format = "took [$duration]($style) "
+
+# Mostra "VPN" verde se tun0 attivo (utile per HTB/THM)
+[custom.vpn]
+command = "ip -br addr show tun0 2>/dev/null | awk '{print $3}' | grep -oE '^[0-9.]+'"
+when = "ip link show tun0 2>/dev/null | grep -q UP"
+shell = ["bash", "--noprofile", "--norc"]
+style = "bold green"
+format = "[ ]($style) "
+description = "Mostra IP tun0 se VPN su"
+
+# === Palette Dracula ===
+[palettes.dracula]
+red = "#ff5555"
+green = "#50fa7b"
+yellow = "#f1fa8c"
+blue = "#bd93f9"
+purple = "#ff79c6"
+cyan = "#8be9fd"
+orange = "#ffb86c"
+fg = "#f8f8f2"
+bg = "#282a36"
+comment = "#6272a4"
