@@ -8,7 +8,7 @@
 [![Nerd Fonts](https://img.shields.io/badge/Nerd_Fonts-000000?style=for-the-badge&logo=nerdfonts&logoColor=white)](https://www.nerdfonts.com/)
 [![License: WTFPL](https://img.shields.io/badge/License-WTFPL-brightgreen.svg?style=for-the-badge)](http://www.wtfpl.net/)
 
-![tmux bar screenshot](screenshots/tmux-bar.png)
+![tmux bar screenshot](screenshots/tmux-bar.png?v=2)
 
 ---
 
@@ -25,7 +25,7 @@ A full multi-pane workflow window that shows you, at a glance, your VPN tun0 IP,
 - 📋 **Universal clipboard** via xclip — copy from any pane to system clipboard with a mouse drag
 - 🎯 **One-script HTB workflow**: `./htb.sh <machine>` and you're ready
 
-![full window](screenshots/full-window.png)
+![full window](screenshots/full-window.png?v=2)
 
 ---
 
