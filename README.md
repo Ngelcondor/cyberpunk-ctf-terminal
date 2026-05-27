@@ -8,7 +8,7 @@
 [![Nerd Fonts](https://img.shields.io/badge/Nerd_Fonts-000000?style=for-the-badge&logo=nerdfonts&logoColor=white)](https://www.nerdfonts.com/)
 [![License: WTFPL](https://img.shields.io/badge/License-WTFPL-brightgreen.svg?style=for-the-badge)](http://www.wtfpl.net/)
 
-![tmux bar screenshot](screenshots/tmux-bar.png?v=2)
+![tmux bar screenshot](screenshots/tmux-bar.png?v=3)
 
 ---
 
