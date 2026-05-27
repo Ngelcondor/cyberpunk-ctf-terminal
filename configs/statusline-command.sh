@@ -17,9 +17,33 @@ C_ORANGE='\033[38;5;215m'    # #ffb86c  → orange
 C_RED='\033[38;5;203m'       # #ff5555  → red
 C_BLUE='\033[38;5;141m'      # #bd93f9  → blue
 C_FG='\033[38;5;253m'        # #f8f8f2  → foreground
+C_WHITE='\033[38;5;255m'     # #ffffff  → bright white
 
 # ---- User @ host (Kali style: user㉿host) ----
 user_host=$(printf "${C_BOLD}${C_GREEN}%s㉿%s${C_RESET}" "$(whoami)" "$(hostname -s)")
+
+# ---- Mullvad VPN status (interface presence + cached country code) ----
+vpn_str=""
+if [ -e /sys/class/net/wg0-mullvad ]; then
+    vpn_cache=/tmp/.statusline-mullvad-country
+    cache_age=999
+    if [ -f "$vpn_cache" ]; then
+        cache_age=$(( $(date +%s) - $(stat -c %Y "$vpn_cache" 2>/dev/null || echo 0) ))
+    fi
+    if [ "$cache_age" -lt 30 ]; then
+        country=$(cat "$vpn_cache" 2>/dev/null)
+    else
+        country=$(mullvad status 2>/dev/null | awk '/^[[:space:]]*Relay:/ {print $2}' | cut -d- -f1 | tr 'a-z' 'A-Z')
+        printf '%s' "$country" > "$vpn_cache"
+    fi
+    if [ -n "$country" ]; then
+        vpn_str=$(printf "${C_GREEN}🛡 %s${C_RESET}" "$country")
+    else
+        vpn_str=$(printf "${C_GREEN}🛡${C_RESET}")
+    fi
+else
+    vpn_str=$(printf "${C_BOLD}${C_RED}⚠ no-vpn${C_RESET}")
+fi
 
 # ---- Directory (up to 3 path components, like Starship truncation_length=3) ----
 cwd=$(printf '%s' "$input" | jq -r '.workspace.current_dir // .cwd // empty')
@@ -72,87 +96,47 @@ fi
 
 # ---- Rate limits ----
 five_pct=$(printf '%s' "$input" | jq -r '.rate_limits.five_hour.used_percentage // empty')
-five_resets=$(printf '%s' "$input" | jq -r '.rate_limits.five_hour.resets_at // empty')
 week_pct=$(printf '%s' "$input" | jq -r '.rate_limits.seven_day.used_percentage // empty')
-week_resets=$(printf '%s' "$input" | jq -r '.rate_limits.seven_day.resets_at // empty')
 
-# Format seconds-remaining as "Xh Ym" or "Xd Yh"
-_fmt_remaining() {
-    resets_at="$1"
-    [ -z "$resets_at" ] && return
-    now=$(date +%s)
-    diff=$((resets_at - now))
-    [ "$diff" -le 0 ] && printf "0m" && return
-    days=$((diff / 86400))
-    hours=$(( (diff % 86400) / 3600 ))
-    mins=$(( (diff % 3600) / 60 ))
-    if [ "$days" -gt 0 ]; then
-        printf "%dd %dh" "$days" "$hours"
-    else
-        printf "%dh %dm" "$hours" "$mins"
-    fi
-}
-
-# Pick color based on usage level: green < 60, yellow 60-84, red >= 85
+# Pick color based on usage level: white < 60, orange 60-84, red >= 85
 _limit_color() {
     val="$1"
-    if [ -z "$val" ]; then printf '%s' "$C_GREEN"; return; fi
-    bucket=$(printf '%s' "$val" | awk '{if ($1 >= 85) print "red"; else if ($1 >= 60) print "yellow"; else print "green"}')
+    if [ -z "$val" ]; then printf '%s' "$C_WHITE"; return; fi
+    bucket=$(printf '%s' "$val" | awk '{if ($1 >= 85) print "red"; else if ($1 >= 60) print "orange"; else print "white"}')
     case "$bucket" in
         red)    printf '%s' "$C_RED" ;;
-        yellow) printf '%s' "$C_YELLOW" ;;
-        *)      printf '%s' "$C_GREEN" ;;
+        orange) printf '%s' "$C_ORANGE" ;;
+        *)      printf '%s' "$C_WHITE" ;;
     esac
-}
-
-# Build an 8-cell block progress bar
-_progress_bar() {
-    val="$1"
-    col="$2"
-    bar_width=8
-    filled=$(printf '%s' "$val" | awk -v w="$bar_width" '{printf "%d", int($1/100*w + 0.5)}')
-    empty=$((bar_width - filled))
-    filled_str=""
-    i=0
-    while [ "$i" -lt "$filled" ]; do filled_str="${filled_str}█"; i=$((i+1)); done
-    empty_str=""
-    i=0
-    while [ "$i" -lt "$empty" ]; do empty_str="${empty_str}░"; i=$((i+1)); done
-    printf "${col}%s${C_RESET}%s" "$filled_str" "$empty_str"
 }
 
 five_str=""
 if [ -n "$five_pct" ]; then
     five_col=$(_limit_color "$five_pct")
-    five_bar=$(_progress_bar "$five_pct" "$five_col")
-    five_reset_str=$(_fmt_remaining "$five_resets")
-    if [ -n "$five_reset_str" ]; then
-        five_str=$(printf "${five_col}5h${C_RESET}[%s]${five_col}$(printf '%.0f' "$five_pct")%%${C_RESET} ${C_DIM}%s${C_RESET}" "$five_bar" "$five_reset_str")
-    else
-        five_str=$(printf "${five_col}5h${C_RESET}[%s]${five_col}$(printf '%.0f' "$five_pct")%%${C_RESET}" "$five_bar")
-    fi
+    five_str=$(printf "⏱ ${five_col}%.0f%%${C_RESET}" "$five_pct")
 fi
 
 week_str=""
 if [ -n "$week_pct" ]; then
     week_col=$(_limit_color "$week_pct")
-    week_bar=$(_progress_bar "$week_pct" "$week_col")
-    week_reset_str=$(_fmt_remaining "$week_resets")
-    if [ -n "$week_reset_str" ]; then
-        week_str=$(printf "${week_col}7d${C_RESET}[%s]${week_col}$(printf '%.0f' "$week_pct")%%${C_RESET} ${C_DIM}%s${C_RESET}" "$week_bar" "$week_reset_str")
-    else
-        week_str=$(printf "${week_col}7d${C_RESET}[%s]${week_col}$(printf '%.0f' "$week_pct")%%${C_RESET}" "$week_bar")
-    fi
+    week_str=$(printf "📅 ${week_col}%.0f%%${C_RESET}" "$week_pct")
 fi
 
 # ---- Assemble line ----
-# Format: user㉿host  dir  on  branch [flags]  model  ctx:X%/200k  5h[bar]X% Xh Ym  7d[bar]X% Xd Yh
+out=""
 
-out=$(printf "%b" "$user_host")
+# VPN status (Mullvad)
+if [ -n "$vpn_str" ]; then
+    out=$(printf "%b" "$vpn_str")
+fi
 
 # Directory
 if [ -n "$dir_label" ]; then
-    out=$(printf "%b  ${C_BOLD}${C_CYAN}%s${C_RESET}" "$out" "$dir_label")
+    if [ -n "$out" ]; then
+        out=$(printf "%b  ${C_BOLD}${C_CYAN}%s${C_RESET}" "$out" "$dir_label")
+    else
+        out=$(printf "${C_BOLD}${C_CYAN}%s${C_RESET}" "$dir_label")
+    fi
 fi
 
 # Git branch + status flags

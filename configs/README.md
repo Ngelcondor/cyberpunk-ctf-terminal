@@ -7,18 +7,20 @@ Companion config files for the writeup
 
 | File | Destination | Description |
 |---|---|---|
-| `tmux.conf` | `~/.tmux.conf` | tmux config — Dracula theme, HACKER MATRIX NEON palette, Nerd Font icons, post-TPM overrides. |
+| `tmux.conf` | `~/.tmux.conf` | tmux config — Dracula theme, HACKER MATRIX NEON palette, Nerd Font icons, Mullvad VPN custom plugin, post-TPM overrides. |
+| `mullvad.sh` | `~/.tmux/scripts/mullvad.sh` (chmod +x) | Custom Dracula plugin — shows `🛡 XX` (country code) when Mullvad WireGuard is up, hidden otherwise. 30s cache in `/tmp` shared with the Claude statusline. |
 | `starship.toml` | `~/.config/starship.toml` | Starship prompt — Dracula palette, custom.vpn module showing  globe when tun0 is up. |
 | `htb.sh` | `~/htb.sh` (chmod +x) | HTB workflow wrapper — boots a 4-pane tmux session (Claude / Attack / Notes / VPN) with red title labels. Usage: `./htb.sh <machine>`. |
 | `qterminal.ini` | `~/.config/qterminal.org/qterminal.ini` | qterminal terminal emulator — sets JetBrainsMonoNL Nerd Font. |
-| `statusline-command.sh` | `~/.claude/statusline-command.sh` (chmod +x) | Claude Code statusline — mirrors the Starship prompt with rate-limit countdown. |
+| `statusline-command.sh` | `~/.claude/statusline-command.sh` (chmod +x) | Claude Code statusline — Mullvad shield, dir, git, model, ctx%, 5h/7d rate-limit % with color buckets. |
 
 ## Quick install
 
 ```bash
 # Backup anything you have first
 for f in ~/.tmux.conf ~/.config/starship.toml ~/htb.sh \
-         ~/.config/qterminal.org/qterminal.ini ~/.claude/statusline-command.sh; do
+         ~/.config/qterminal.org/qterminal.ini ~/.claude/statusline-command.sh \
+         ~/.tmux/scripts/mullvad.sh; do
   [ -f "$f" ] && cp "$f" "$f.bak.$(date +%s)"
 done
 
@@ -28,7 +30,17 @@ cp starship.toml        ~/.config/starship.toml
 cp htb.sh               ~/htb.sh && chmod +x ~/htb.sh
 cp qterminal.ini        ~/.config/qterminal.org/qterminal.ini
 cp statusline-command.sh ~/.claude/statusline-command.sh && chmod +x ~/.claude/statusline-command.sh
+mkdir -p ~/.tmux/scripts && cp mullvad.sh ~/.tmux/scripts/mullvad.sh && chmod +x ~/.tmux/scripts/mullvad.sh
 ```
+
+The tmux.conf includes a `run-shell` line that auto-creates the symlink
+`~/.tmux/plugins/tmux/scripts/mullvad.sh → ~/.tmux/scripts/mullvad.sh` on
+every config reload. This survives Dracula plugin updates without manual fixup.
+
+If you don't use Mullvad VPN, either remove `custom:mullvad.sh` from the
+`@dracula-plugins` list in tmux.conf, or just leave it — the script returns
+empty output when `/sys/class/net/wg0-mullvad` is absent, so Dracula hides
+the segment automatically.
 
 After dropping the configs:
 

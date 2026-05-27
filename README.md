@@ -18,6 +18,7 @@ A full multi-pane workflow window that shows you, at a glance, your VPN tun0 IP,
 
 - 🟪 **tmux Dracula** with a custom **HACKER MATRIX NEON** palette (purple `#7000ff` blob + neon accents on pure black)
 - 🌐 **Real-time `tun0` IP** in the status bar (live)
+- 🛡 **Mullvad VPN indicator** — green shield + country code (`🛡 NL`) when the WireGuard tunnel is up, hidden when down. Same logic mirrored in the Claude Code statusline.
 -  **Nerd Font glyphs** for every module ( CPU,  RAM,  globe-tun0,  clock,  user-secret left-icon)
 - 🚀 **Starship prompt** with a green globe `` indicator that lights up only when the VPN is up
 - 🤖 **Claude Code-aware layout** — `htb.sh` boots a 4-pane workflow (Claude / Attack / Notes / VPN) with red title labels and a magenta active border, designed for AI-paired CTF work
@@ -61,7 +62,8 @@ cd cyberpunk-ctf-terminal
 
 # Backup whatever you already have
 for f in ~/.tmux.conf ~/.config/starship.toml ~/htb.sh \
-         ~/.config/qterminal.org/qterminal.ini ~/.claude/statusline-command.sh; do
+         ~/.config/qterminal.org/qterminal.ini ~/.claude/statusline-command.sh \
+         ~/.tmux/scripts/mullvad.sh; do
   [ -f "$f" ] && cp "$f" "$f.bak.$(date +%s)"
 done
 
@@ -72,6 +74,8 @@ cp configs/htb.sh                ~/htb.sh && chmod +x ~/htb.sh
 cp configs/qterminal.ini         ~/.config/qterminal.org/qterminal.ini
 mkdir -p ~/.claude
 cp configs/statusline-command.sh ~/.claude/statusline-command.sh && chmod +x ~/.claude/statusline-command.sh
+mkdir -p ~/.tmux/scripts
+cp configs/mullvad.sh            ~/.tmux/scripts/mullvad.sh && chmod +x ~/.tmux/scripts/mullvad.sh
 ```
 
 ### 4. Activate
@@ -118,11 +122,12 @@ See the [WRITEUP](WRITEUP.md#7-claude-code-inside-tmux--the-ai-co-pilot-pattern)
 
 | File | Destination | Description |
 |---|---|---|
-| `tmux.conf` | `~/.tmux.conf` | tmux + Dracula HACKER MATRIX NEON palette + Nerd Font icons + post-TPM overrides |
+| `tmux.conf` | `~/.tmux.conf` | tmux + Dracula HACKER MATRIX NEON palette + Nerd Font icons + Mullvad custom plugin + post-TPM overrides |
+| `mullvad.sh` | `~/.tmux/scripts/mullvad.sh` | Custom Dracula plugin — `🛡 XX` country code when Mullvad WireGuard is up |
 | `starship.toml` | `~/.config/starship.toml` | Starship prompt with `custom.vpn` globe indicator |
 | `htb.sh` | `~/htb.sh` | 4-pane HTB workflow launcher |
 | `qterminal.ini` | `~/.config/qterminal.org/qterminal.ini` | qterminal — JetBrainsMonoNL Nerd Font |
-| `statusline-command.sh` | `~/.claude/statusline-command.sh` | Claude Code statusline mirroring the Starship prompt + rate-limit countdowns |
+| `statusline-command.sh` | `~/.claude/statusline-command.sh` | Claude Code statusline — Mullvad shield + dir + git + model + ctx% + 5h/7d rate-limit % |
 
 ---
 
@@ -158,7 +163,7 @@ Sections:
 | `dark_purple` | `#7000ff` | Active pane border, status-left blob, window indicator |
 | `light_purple` | `#bd00ff` | Time module, mode-style |
 | `cyan` | `#00ffff` | tun0 IP |
-| `green` | `#00ff41` | Matrix-green prompt arrow |
+| `green` | `#00ff41` | Matrix-green prompt arrow, Mullvad VPN shield, git ✓ HEAD |
 | `pink` | `#ff00aa` | CPU, pane count icon |
 | `yellow` | `#d7ff00` | Session name, RAM |
 | `red` | `#ff003c` | Pane title labels (Claude/Attack/Notes/VPN), prefix indicator |
